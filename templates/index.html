@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - NSE Stock Signal Bot{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card border-0 bg-dark">
+            <div class="card-body">
+                <h2 class="card-title">
+                    <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                </h2>
+                <p class="card-text">Welcome to your NSE Stock Signal Bot dashboard. Here you can monitor recent trading signals and system status.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Cards Row -->
+    <div class="col-12 mb-4">
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <div class="card h-100 border-0 bg-dark">
+                    <div class="card-body text-center">
+                        <i class="fas fa-chart-bar fa-3x mb-3 text-info"></i>
+                        <h5 class="card-title">Monitored Stocks</h5>
+                        <h2 class="display-4">{{ stock_count }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card h-100 border-0 bg-dark">
+                    <div class="card-body text-center">
+                        <i class="fas fa-arrow-up fa-3x mb-3 text-success"></i>
+                        <h5 class="card-title">Buy Signals</h5>
+                        <h2 class="display-4">{{ signals|selectattr('signal_type', 'equalto', 'BUY')|list|length }}</h2>
+                        <p class="text-muted">Recent signals</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card h-100 border-0 bg-dark">
+                    <div class="card-body text-center">
+                        <i class="fas fa-arrow-down fa-3x mb-3 text-danger"></i>
+                        <h5 class="card-title">Sell Signals</h5>
+                        <h2 class="display-4">{{ signals|selectattr('signal_type', 'equalto', 'SELL')|list|length }}</h2>
+                        <p class="text-muted">Recent signals</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Signals Table -->
+    <div class="col-12">
+        <div class="card border-0 bg-dark">
+            <div class="card-header bg-dark border-bottom">
+                <h5 class="m-0">
+                    <i class="fas fa-bell me-2"></i>Recent Signals
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if signals %}
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover">
+                        <thead>
+                            <tr>
+                                <th>Symbol</th>
+                                <th>Signal</th>
+                                <th>Price</th>
+                                <th>RSI</th>
+                                <th>EMA20</th>
+                                <th>Date</th>
+                                <th>Notification</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for signal in signals %}
+                            <tr>
+                                <td>{{ signal.stock.symbol }}</td>
+                                <td>
+                                    {% if signal.signal_type == 'BUY' %}
+                                    <span class="badge bg-success">BUY</span>
+                                    {% else %}
+                                    <span class="badge bg-danger">SELL</span>
+                                    {% endif %}
+                                </td>
+                                <td>₹{{ signal.price|round(2) }}</td>
+                                <td>{{ signal.rsi|round(2) }}</td>
+                                <td>{{ signal.ema|round(2) }}</td>
+                                <td>{{ signal.timestamp|format_date }}</td>
+                                <td>
+                                    {% if signal.message_sent %}
+                                    <span class="badge bg-info"><i class="fas fa-check me-1"></i>Sent</span>
+                                    {% else %}
+                                    <span class="badge bg-warning text-dark"><i class="fas fa-times me-1"></i>Failed</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <a href="{{ url_for('history') }}" class="btn btn-outline-light mt-3">
+                    <i class="fas fa-history me-1"></i>View All Signals
+                </a>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-bell-slash fa-4x mb-3 text-muted"></i>
+                    <h5>No signals generated yet</h5>
+                    <p class="text-muted">Signals will appear here once the system generates them.</p>
+                    <a href="{{ url_for('configure') }}" class="btn btn-outline-light mt-2">
+                        <i class="fas fa-cog me-1"></i>Configure Stocks
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

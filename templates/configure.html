@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+
+{% block title %}Configure Stocks - NSE Stock Signal Bot{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card border-0 bg-dark">
+            <div class="card-body">
+                <h2 class="card-title">
+                    <i class="fas fa-cog me-2"></i>Configure Stocks
+                </h2>
+                <p class="card-text">Add, edit or remove stocks from your monitoring list. Only active stocks will be analyzed for trading signals.</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add New Stock Form -->
+    <div class="col-lg-4 mb-4">
+        <div class="card border-0 bg-dark h-100">
+            <div class="card-header bg-dark border-bottom">
+                <h5 class="m-0">
+                    <i class="fas fa-plus-circle me-2"></i>Add New Stock
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('configure') }}">
+                    <input type="hidden" name="action" value="add_stock">
+                    
+                    <div class="mb-3">
+                        <label for="symbol" class="form-label">Stock Symbol (NSE)</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="symbol" name="symbol" placeholder="e.g. RELIANCE" required>
+                            <span class="input-group-text">.NS</span>
+                        </div>
+                        <div class="form-text">Enter the NSE symbol without the .NS suffix</div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="name" class="form-label">Company Name</label>
+                        <input type="text" class="form-control" id="name" name="name" placeholder="e.g. Reliance Industries Ltd" required>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i>Add Stock
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Monitored Stocks List -->
+    <div class="col-lg-8 mb-4">
+        <div class="card border-0 bg-dark h-100">
+            <div class="card-header bg-dark border-bottom d-flex justify-content-between align-items-center">
+                <h5 class="m-0">
+                    <i class="fas fa-list me-2"></i>Monitored Stocks
+                </h5>
+                <form method="POST" action="{{ url_for('configure') }}" class="d-inline">
+                    <input type="hidden" name="action" value="run_analysis">
+                    <button type="submit" class="btn btn-sm btn-outline-info">
+                        <i class="fas fa-sync-alt me-1"></i>Run Analysis Now
+                    </button>
+                </form>
+            </div>
+            <div class="card-body">
+                {% if stocks %}
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover">
+                        <thead>
+                            <tr>
+                                <th>Symbol</th>
+                                <th>Name</th>
+                                <th>Status</th>
+                                <th>Added On</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for stock in stocks %}
+                            <tr>
+                                <td>{{ stock.symbol }}</td>
+                                <td>{{ stock.name }}</td>
+                                <td>
+                                    <form method="POST" action="{{ url_for('configure') }}" id="toggle-form-{{ stock.id }}">
+                                        <input type="hidden" name="action" value="update_stock">
+                                        <input type="hidden" name="stock_id" value="{{ stock.id }}">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" role="switch" 
+                                                id="active-{{ stock.id }}" name="active" 
+                                                {% if stock.active %}checked{% endif %}
+                                                onchange="document.getElementById('toggle-form-{{ stock.id }}').submit()">
+                                            <label class="form-check-label" for="active-{{ stock.id }}">
+                                                {% if stock.active %}
+                                                <span class="text-success">Active</span>
+                                                {% else %}
+                                                <span class="text-muted">Inactive</span>
+                                                {% endif %}
+                                            </label>
+                                        </div>
+                                    </form>
+                                </td>
+                                <td>{{ stock.added_on|format_date('%Y-%m-%d') }}</td>
+                                <td>
+                                    <form method="POST" action="{{ url_for('configure') }}" class="d-inline">
+                                        <input type="hidden" name="action" value="delete_stock">
+                                        <input type="hidden" name="stock_id" value="{{ stock.id }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" 
+                                                onclick="return confirm('Are you sure you want to delete {{ stock.symbol }}?');">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-chart-line fa-4x mb-3 text-muted"></i>
+                    <h5>No stocks added yet</h5>
+                    <p class="text-muted">Add stocks to start monitoring for trading signals.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Information Card -->
+    <div class="col-12 mb-4">
+        <div class="card border-0 bg-dark">
+            <div class="card-header bg-dark border-bottom">
+                <h5 class="m-0">
+                    <i class="fas fa-info-circle me-2"></i>How It Works
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>Buy Signal Criteria:</h5>
+                        <ul>
+                            <li>RSI below 30 (oversold condition)</li>
+                            <li>Price above 20-day EMA (uptrend confirmation)</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Sell Signal Criteria:</h5>
+                        <ul>
+                            <li>RSI above 70 (overbought condition)</li>
+                            <li>Price below 20-day EMA (downtrend confirmation)</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="alert alert-info mt-3">
+                    <i class="fas fa-bell me-2"></i>The system automatically checks for signals during market hours (9:30 AM and 3:30 PM IST on weekdays).
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
