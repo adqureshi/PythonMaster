@@ -1,0 +1,87 @@
+/* Custom styles for NSE Stock Signal Bot */
+
+/* Ensure the body fills the height */
+html, body {
+    min-height: 100vh;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Make footer stay at bottom */
+footer {
+    margin-top: auto;
+}
+
+/* Card styling */
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.3);
+}
+
+/* Custom badge colors */
+.badge.bg-success {
+    background-color: var(--bs-success) !important;
+}
+
+.badge.bg-danger {
+    background-color: var(--bs-danger) !important;
+}
+
+/* Table improvements */
+.table-responsive {
+    border-radius: 0.25rem;
+    overflow: hidden;
+}
+
+.table th {
+    font-weight: 600;
+    border-top: none;
+}
+
+/* Better spacing for forms */
+.form-label {
+    font-weight: 500;
+}
+
+/* Custom styling for switches */
+.form-switch .form-check-input {
+    height: 1.2rem;
+    width: 2.4rem;
+}
+
+/* Pagination styling */
+.page-link {
+    border-color: var(--bs-dark);
+    background-color: var(--bs-dark);
+    color: var(--bs-light);
+}
+
+.page-link:hover {
+    background-color: var(--bs-secondary);
+    border-color: var(--bs-secondary);
+    color: var(--bs-light);
+}
+
+.page-item.active .page-link {
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
+}
+
+/* Card header bottom border */
+.card-header.border-bottom {
+    border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Better form control focus state */
+.form-control:focus, .form-select:focus {
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
