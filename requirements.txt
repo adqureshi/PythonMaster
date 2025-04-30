@@ -1,0 +1,63 @@
+import requests
+import pandas as pd
+import datetime
+import os
+
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
+TELEGRAM_ID = os.getenv("TELEGRAM_ID")
+
+def send_telegram_message(message):
+    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
+    payload = {
+        "chat_id": TELEGRAM_ID,
+        "text": message,
+        "parse_mode": "Markdown"
+    }
+    requests.post(url, data=payload)
+
+def fetch_stock_data(symbol):
+    # Using Yahoo Finance CSV URL (free and simple)
+    end = datetime.datetime.now()
+    start = end - datetime.timedelta(days=90)
+    url = f"https://query1.finance.yahoo.com/v7/finance/download/{symbol}.NS?period1={(start - datetime.datetime(1970,1,1)).days * 86400}&period2={(end - datetime.datetime(1970,1,1)).days * 86400}&interval=1d&events=history"
+    try:
+        df = pd.read_csv(url)
+        return df
+    except Exception as e:
+        return None
+
+def calculate_signals(df):
+    df['EMA20'] = df['Close'].ewm(span=20).mean()
+    delta = df['Close'].diff()
+    gain = delta.clip(lower=0)
+    loss = -delta.clip(upper=0)
+    avg_gain = gain.rolling(window=14).mean()
+    avg_loss = loss.rolling(window=14).mean()
+    rs = avg_gain / avg_loss
+    df['RSI'] = 100 - (100 / (1 + rs))
+    latest = df.iloc[-1]
+    signal = ""
+    if latest['RSI'] < 30 and latest['Close'] > latest['EMA20']:
+        signal = f"📈 *BUY Signal* for `{symbol}`\nPrice: ₹{latest['Close']:.2f}\nRSI: {latest['RSI']:.2f}, EMA20: {latest['EMA20']:.2f}"
+    elif latest['RSI'] > 70 and latest['Close'] < latest['EMA20']:
+        signal = f"📉 *SELL Signal* for `{symbol}`\nPrice: ₹{latest['Close']:.2f}\nRSI: {latest['RSI']:.2f}, EMA20: {latest['EMA20']:.2f}"
+    return signal
+
+def run_bot():
+    symbols = ["RELIANCE", "INFY", "TCS", "ICICIBANK", "HDFCBANK"]
+    for symbol in symbols:
+        df = fetch_stock_data(symbol)
+        if df is not None and len(df) > 20:
+            signal = calculate_signals(df)
+            if signal:
+                send_telegram_message(signal)
+
+if __name__ == "__main__":
+    run_bot()
+pandas
+requests
+apscheduler
+flask
+flask-sqlalchemy
+sqlalchemy
+werkzeug
